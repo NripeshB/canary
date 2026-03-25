@@ -62,9 +62,7 @@ function DetailPanel() {
     );
   }, [detail]);
 
-  if (!selectedWard) {
-    return <div ref={panelRef} className="fixed right-0 top-0 h-full w-[360px] z-30 translate-x-full" />;
-  }
+ 
 
   const aqi = detail?.aqi || 0;
   const predicted = detail?.predicted || 0;
@@ -137,7 +135,7 @@ function DetailPanel() {
 
   const getExternalAssistantReply = async (question) => {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-    const model = import.meta.env.VITE_OPENROUTER_MODEL || 'meta-llama/llama-3.1-8b-instruct:free';
+    const model = "nvidia/nemotron-3-super-120b-a12b:free";
 
     if (!apiKey) {
       return fallbackLocalReply(question);
@@ -194,6 +192,9 @@ function DetailPanel() {
       setIsChatLoading(false);
     }
   };
+   if (!selectedWard) {
+    return <div ref={panelRef} className="fixed right-0 top-0 h-full w-[360px] z-30 translate-x-full" />;
+  }
 
   return (
     <div
