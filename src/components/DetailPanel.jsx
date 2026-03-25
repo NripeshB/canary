@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useAppState, useAppDispatch } from '../context/AppContext';
 import { getAqiColor, getAqiCategory, getAqiBg, getAqiTextColor } from '../utils/aqiUtils';
@@ -9,6 +9,8 @@ function DetailPanel() {
   const panelRef = useRef(null);
   const counterRef = useRef(null);
   const contentRef = useRef(null);
+  const [chatInput, setChatInput] = useState('');
+  const [chatMessages, setChatMessages] = useState([]);
 
   const detail = wardDetail;
 
@@ -70,6 +72,83 @@ function DetailPanel() {
   const advisory = detail?.advisory || {};
   const mitigations = detail?.mitigations || [];
   const explainability = detail?.explainability || '';
+
+  const assistantContext = useMemo(() => {
+    if (!detail) return null;
+    const topSources = [...sources]
+      .sort((a, b) => (b?.pct || 0) - (a?.pct || 0))
+      .slice(0, 2)
+      .map((s) => `${s.source} (${s.pct}%)`)
+      .join(', ');
+
+    return {
+      wardName: detail.ward_name,
+      aqi,
+      predicted,
+      trend,
+      category: getAqiCategory(aqi),
+      topSources: topSources || 'mixed local factors',
+      advisoryGeneral: advisory.general || '',
+      advisorySensitive: advisory.sensitive || '',
+      explainability,
+    };
+  }, [detail, sources, advisory.general, advisory.sensitive, aqi, predicted, trend, explainability]);
+
+  useEffect(() => {
+    if (!assistantContext) {
+      setChatMessages([]);
+      return;
+    }
+
+    const trendSummary = assistantContext.trend === 'rising'
+      ? 'AQI may worsen in the next cycle'
+      : assistantContext.trend === 'falling'
+        ? 'AQI is likely to improve shortly'
+        : 'AQI is expected to remain stable';
+
+    const intro =
+      `For ${assistantContext.wardName}, current AQI is ${assistantContext.aqi} (${assistantContext.category}) and predicted AQI is ${assistantContext.predicted}. ` +
+      `${trendSummary}. Main contributors right now: ${assistantContext.topSources}.`;
+
+    setChatMessages([
+      {
+        role: 'assistant',
+        text: intro,
+      },
+    ]);
+  }, [assistantContext]);
+
+  const buildAssistantReply = (question) => {
+    if (!assistantContext) return 'Please select a ward so I can provide insights.';
+    const q = question.toLowerCase();
+
+    if (q.includes('source') || q.includes('cause') || q.includes('why')) {
+      return `Top source drivers are ${assistantContext.topSources}. This is likely the main reason for the current AQI pattern.`;
+    }
+    if (q.includes('predict') || q.includes('next') || q.includes('future') || q.includes('tomorrow')) {
+      return `Predicted AQI is ${assistantContext.predicted}. Based on current trend (${assistantContext.trend}), conditions should ${assistantContext.trend === 'rising' ? 'worsen' : assistantContext.trend === 'falling' ? 'improve' : 'stay steady'} unless source mix changes.`;
+    }
+    if (q.includes('sensitive') || q.includes('children') || q.includes('elderly') || q.includes('asthma')) {
+      return assistantContext.advisorySensitive || 'Sensitive groups should reduce prolonged outdoor exposure and use protective masks when AQI is elevated.';
+    }
+    if (q.includes('general') || q.includes('public') || q.includes('everyone')) {
+      return assistantContext.advisoryGeneral || 'General public should limit strenuous outdoor activity when AQI is high.';
+    }
+    if (q.includes('tip') || q.includes('action') || q.includes('recommend')) {
+      return 'Keep windows closed during peak pollution hours, wear a well-fitted mask outdoors, and avoid outdoor exercise near traffic-heavy routes.';
+    }
+
+    return assistantContext.explainability || `Current AQI is ${assistantContext.aqi} (${assistantContext.category}) in ${assistantContext.wardName}. Ask me about sources, prediction, or health advice.`;
+  };
+
+  const handleSendMessage = () => {
+    const trimmed = chatInput.trim();
+    if (!trimmed) return;
+    const userMessage = { role: 'user', text: trimmed };
+    const assistantMessage = { role: 'assistant', text: buildAssistantReply(trimmed) };
+    setChatMessages((prev) => [...prev, userMessage, assistantMessage]);
+    setChatInput('');
+  };
 
   return (
     <div
@@ -155,11 +234,43 @@ function DetailPanel() {
               </div>
             </div>
 
-            {/* Explainability */}
+            {/* AI Insight + Free Chatbot */}
             <div className="panel-section rounded-xl bg-white/[0.02] border border-white/[0.05] p-4">
-              <div className="flex gap-2.5">
-                <span className="text-base mt-0.5">💡</span>
-                <p className="text-xs text-gray-400 leading-relaxed">{explainability}</p>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em]">AI Assistant</h3>
+                <span className="text-[9px] text-emerald-400 font-semibold uppercase">Free</span>
+              </div>
+              <div className="space-y-2 max-h-44 overflow-y-auto pr-1">
+                {chatMessages.map((msg, i) => (
+                  <div
+                    key={`${msg.role}-${i}`}
+                    className={`rounded-lg px-3 py-2 text-xs leading-relaxed ${
+                      msg.role === 'assistant'
+                        ? 'bg-indigo-500/10 border border-indigo-400/20 text-gray-200'
+                        : 'bg-white/5 border border-white/10 text-gray-300'
+                    }`}
+                  >
+                    <p className="text-[9px] uppercase font-bold opacity-60 mb-1">{msg.role}</p>
+                    <p>{msg.text}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 flex gap-2">
+                <input
+                  value={chatInput}
+                  onChange={(e) => setChatInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSendMessage();
+                  }}
+                  placeholder="Ask about AQI, sources, prediction..."
+                  className="flex-1 h-9 rounded-lg bg-black/20 border border-white/10 px-3 text-xs text-gray-100 placeholder:text-gray-500 focus:outline-none focus:border-accent/50"
+                />
+                <button
+                  onClick={handleSendMessage}
+                  className="h-9 px-3 rounded-lg bg-accent/80 hover:bg-accent text-[11px] font-bold text-black transition-colors"
+                >
+                  Send
+                </button>
               </div>
             </div>
 
