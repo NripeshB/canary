@@ -236,3 +236,33 @@ body {
   color: #86efac;
   border: 1px solid rgba(34, 197, 94, 0.3);
 }
+
+/* ============================================================
+   ADMIN DASHBOARD STYLES
+   ============================================================ */
+
+/* Priority text colors (for policy cards) */
+.priority-text-critical { color: #fca5a5; }
+.priority-text-high { color: #fdba74; }
+.priority-text-medium { color: #fde047; }
+.priority-text-low { color: #86efac; }
+
+/* Admin horizontal scroll area */
+.admin-scrollbar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.admin-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.admin-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--text-muted);
+  border-radius: 10px;
+}
+
+/* Select dropdown styling for dark theme */
+select option {
+  background: #141c2b;
+  color: #e2e8f0;
+}

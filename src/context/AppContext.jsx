@@ -15,6 +15,7 @@ const initialState = {
 
   // Map state
   mapMode: 'aqi',       // 'aqi' | 'source' | 'combined'
+  activeTab: 'user',    // 'user' | 'admin'
 
   // Selection state
   selectedWard: null,
@@ -92,6 +93,18 @@ function appReducer(state, action) {
 
     case 'TOGGLE_DISTRICT_LIST':
       return { ...state, isDistrictListOpen: action.payload ?? !state.isDistrictListOpen };
+
+    case 'SET_ACTIVE_TAB':
+      return {
+        ...state,
+        activeTab: action.payload,
+        selectedWard: null,
+        selectedFeature: null,
+        wardDetail: null,
+        isPanelOpen: false,
+        isLeftPanelOpen: false,
+        isDistrictListOpen: false,
+      };
 
     case 'ADD_REPORT':
       return {

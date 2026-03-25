@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import gsap from 'gsap';
 import { useAppState, useAppDispatch } from '../context/AppContext';
 import { getAqiColor, getAqiCategory } from '../utils/aqiUtils';
+import TabSwitcher from './TabSwitcher';
 
 function Header() {
   const { lastUpdated, wardList, selectedWard, hotspots } = useAppState();
@@ -58,6 +59,9 @@ function Header() {
           </div>
         </div>
       </div>
+
+      {/* Tab Switcher */}
+      <TabSwitcher />
 
       {/* Summary chips (visible on landing) */}
       {!selectedWard && (

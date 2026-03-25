@@ -11,9 +11,10 @@ import ReportFAB from './components/ReportFAB';
 import Header from './components/Header';
 import HotspotCards from './components/HotspotCards';
 import CityTrendChart from './components/CityTrendChart';
+import AdminDashboard from './components/AdminDashboard';
 
 function App() {
-  const { isLoading, error, selectedWard } = useAppState();
+  const { isLoading, error, selectedWard, activeTab } = useAppState();
   const dispatch = useAppDispatch();
 
   // Load initial data from backend
@@ -86,6 +87,17 @@ function App() {
     );
   }
 
+  // Admin tab — separate layout
+  if (activeTab === 'admin') {
+    return (
+      <>
+        <AdminDashboard />
+        <ReportModal />
+      </>
+    );
+  }
+
+  // Citizen tab — existing layout
   return (
     <div className="relative h-screen w-screen overflow-hidden">
       {/* Full viewport map */}
@@ -112,7 +124,7 @@ function App() {
       {/* District list sidebar */}
       <DistrictList />
 
-      {/* Report FAB + Modal */}
+      {/* Report FAB + Modal (citizen only) */}
       <ReportFAB />
       <ReportModal />
     </div>

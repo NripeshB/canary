@@ -4,7 +4,7 @@ import { useAppState, useAppDispatch } from '../context/AppContext';
 import { getAqiColor, getAqiCategory, getAqiBg, getAqiTextColor } from '../utils/aqiUtils';
 
 function DetailPanel() {
-  const { wardDetail, isPanelOpen, isDetailLoading, selectedWard } = useAppState();
+  const { wardDetail, isPanelOpen, isDetailLoading, selectedWard, activeTab } = useAppState();
   const dispatch = useAppDispatch();
   const panelRef = useRef(null);
   const counterRef = useRef(null);
@@ -163,7 +163,8 @@ function DetailPanel() {
               </div>
             </div>
 
-            {/* Health Advisory */}
+            {/* Health Advisory — Citizen tab only */}
+            {activeTab === 'user' && (
             <div className="panel-section">
               <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-3">Health Advisory</h3>
               <div className="space-y-2">
@@ -177,10 +178,15 @@ function DetailPanel() {
                 </div>
               </div>
             </div>
+            )}
 
-            {/* Mitigations */}
+            {/* Policy Recommendations — Admin tab only */}
+            {activeTab === 'admin' && (
             <div className="panel-section">
-              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-3">Mitigation Actions</h3>
+              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-3 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+                Recommended Policy Actions
+              </h3>
               <div className="space-y-1.5">
                 {mitigations.map((m, i) => (
                   <div key={i} className={`flex items-center gap-3 px-3 py-2.5 rounded-lg priority-${m.priority}`}>
@@ -191,6 +197,7 @@ function DetailPanel() {
                 ))}
               </div>
             </div>
+            )}
           </>
         ) : null}
       </div>
