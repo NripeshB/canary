@@ -59,3 +59,19 @@ export async function fetchRecentReports(limit = 20) {
   const data = await apiFetch(`/reports/recent/?limit=${limit}`);
   return data.reports;
 }
+
+/** GET /api/wind/ — Current wind data */
+export async function fetchWindData() {
+  return apiFetch('/wind/');
+}
+
+/** GET /api/impact/ — Platform impact metrics */
+export async function fetchImpactMetrics() {
+  return apiFetch('/impact/');
+}
+
+/** GET /api/reports/map/ — Reports with coordinates for map markers */
+export async function fetchReportMarkers() {
+  const data = await apiFetch('/reports/map/');
+  return data.reports;
+}
