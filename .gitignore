@@ -1,0 +1,12 @@
+# Node
+node_modules/
+.vite/
+dist/
+
+# Env
+.env
+
+# Python
+venv/
+__pycache__/
+*.pyc

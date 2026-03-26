@@ -8,6 +8,7 @@ import { seededRandom } from '../utils/aqiUtils.js';
  * Generate AQI data for all wards from GeoJSON
  * Values are deterministic per ward_id for session consistency
  */
+// 
 export function generateWardAqiData(geojson) {
   const data = {};
   if (!geojson?.features) return data;
