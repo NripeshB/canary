@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import gsap from 'gsap';
-import { useAppState, useAppDispatch } from '../context/AppContext';
+import ReactMarkdown from "react-markdown";import { useAppState, useAppDispatch } from '../context/AppContext';
 import { getAqiColor, getAqiCategory, getAqiBg, getAqiTextColor } from '../utils/aqiUtils';
 
 function DetailPanel() {
@@ -135,7 +135,18 @@ function DetailPanel() {
 
   const getExternalAssistantReply = async (question) => {
     const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
-    const model = "nvidia/nemotron-3-super-120b-a12b:free";
+
+
+    // untested Models: "meta-llama/llama-3.2-3b-instruct:free";
+    // "meta-llama/llama-3.3-70b-instruct:free";
+    // "google/gemma-3-27b-it:free";
+    // "google/gemma-3-12b-it:free";
+    // "google/gemma-3-4b-it:free";
+    // "google/gemma-3n-e4b-it:free";
+    // "google/gemma-3n-e2b-it:free";
+    
+
+    const model = "";//"nvidia/nemotron-3-super-120b-a12b:free";//"nvidia/nemotron-3-nano-30b-a3b:free";'arcee-ai/trinity-large-preview:free';//"stepfun/step-3.5-flash:free"; 
 
     if (!apiKey) {
       return fallbackLocalReply(question);
@@ -145,8 +156,22 @@ function DetailPanel() {
       ? `Ward context:\n- Ward: ${assistantContext.wardName}\n- AQI: ${assistantContext.aqi} (${assistantContext.category})\n- Predicted AQI: ${assistantContext.predicted}\n- Trend: ${assistantContext.trend}\n- Top sources: ${assistantContext.topSources}\n- General advisory: ${assistantContext.advisoryGeneral}\n- Sensitive advisory: ${assistantContext.advisorySensitive}\n- Explainability: ${assistantContext.explainability}\n`
       : 'No ward selected yet.';
 
-    const systemPrompt = `You are an AQI assistant. Give concise, practical, and well-rounded responses, including uncertainty when needed. Use the ward context when relevant, but still answer vague questions helpfully.`;
+    // const systemPrompt = `You are an AQI assistant. Give concise, practical, and well-rounded responses, including uncertainty when needed. Use the ward context when relevant, but still answer vague questions helpfully.`;
+    const systemPrompt = `
+      You are an AQI assistant.
 
+      Rules:
+      - If user greets only Greet back say what can i help you with
+      - Always ask if the user needs any help or futher information at the end.
+      - Don't use emojis.
+      - Keep responses between 150–200 words MAX
+      - Be concise and practical
+      - Avoid unnecessary explanations
+      - Use bullet points when helpful
+      - No long paragraphs
+
+Use the ward context when relevant.
+`;
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -297,7 +322,11 @@ function DetailPanel() {
                     }`}
                   >
                     <p className="text-[9px] uppercase font-bold opacity-60 mb-1">{msg.role}</p>
-                    <p>{msg.text}</p>
+                    {/* <p>{msg.text}</p>
+                     */}
+                     <ReactMarkdown>
+                        {msg.text}
+                      </ReactMarkdown>
                   </div>
                 ))}
                 {isChatLoading ? (
