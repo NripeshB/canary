@@ -2,7 +2,21 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import gsap from 'gsap';
 import { useAppState, useAppDispatch } from '../context/AppContext';
 import { getAqiColor, getAqiCategory } from '../utils/aqiUtils';
-import { getMitigations } from '../data/mockData';
+
+// Inline mitigations by AQI tier (same as backend services.py)
+const MITIGATIONS = {
+  Good: [{ action: 'Routine Monitoring', icon: '📊', priority: 'low' }, { action: 'Maintain Green Cover', icon: '🌳', priority: 'low' }],
+  Satisfactory: [{ action: 'Routine Monitoring', icon: '📊', priority: 'low' }, { action: 'Monitor Construction Sites', icon: '🏗️', priority: 'low' }],
+  Moderate: [{ action: 'Increase Road Water Sprinkling', icon: '💧', priority: 'medium' }, { action: 'Monitor Construction Sites', icon: '🏗️', priority: 'medium' }, { action: 'Deploy Mobile Monitoring', icon: '📡', priority: 'low' }],
+  Poor: [{ action: 'Enforce Traffic Diversions', icon: '🚦', priority: 'high' }, { action: 'Halt Non-Essential Construction', icon: '🚧', priority: 'high' }, { action: 'Activate Dust Suppression Units', icon: '💨', priority: 'high' }],
+  'Very Poor': [{ action: 'Implement Odd-Even Traffic Rule', icon: '🚗', priority: 'critical' }, { action: 'Close All Construction Activity', icon: '⛔', priority: 'critical' }, { action: 'Emergency Dust Suppression', icon: '🚨', priority: 'critical' }],
+  Severe: [{ action: 'Implement Odd-Even Traffic Rule', icon: '🚗', priority: 'critical' }, { action: 'Close All Construction Activity', icon: '⛔', priority: 'critical' }, { action: 'Emergency Dust Suppression', icon: '🚨', priority: 'critical' }],
+};
+
+function getMitigations(aqi) {
+  const cat = getAqiCategory(aqi);
+  return MITIGATIONS[cat] || MITIGATIONS.Moderate;
+}
 
 function PolicyRecommendations() {
   const { wardList, geojson } = useAppState();

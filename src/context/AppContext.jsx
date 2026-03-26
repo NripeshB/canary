@@ -17,6 +17,10 @@ const initialState = {
   mapMode: 'aqi',       // 'aqi' | 'source' | 'combined'
   activeTab: 'user',    // 'user' | 'admin'
 
+  // Auth state
+  user: null,
+  isAuthenticated: false,
+
   // Selection state
   selectedWard: null,
   selectedFeature: null,
@@ -40,7 +44,7 @@ function appReducer(state, action) {
     case 'SET_INITIAL_DATA':
       return {
         ...state,
-        geojson: action.payload.geojson,
+        geojson: action.payload.geojson || state.geojson,
         wardList: action.payload.wardList,
         hotspots: action.payload.hotspots,
         cityTrend: action.payload.cityTrend,
@@ -114,6 +118,26 @@ function appReducer(state, action) {
 
     case 'SET_REPORTS':
       return { ...state, reports: action.payload };
+
+    case 'SET_USER':
+      return {
+        ...state,
+        user: action.payload,
+        isAuthenticated: !!action.payload,
+      };
+
+    case 'LOGOUT':
+      return {
+        ...state,
+        user: null,
+        isAuthenticated: false,
+        activeTab: 'user',
+        selectedWard: null,
+        selectedFeature: null,
+        wardDetail: null,
+        isPanelOpen: false,
+        isLeftPanelOpen: false,
+      };
 
     default:
       return state;

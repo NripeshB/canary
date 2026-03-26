@@ -74,3 +74,25 @@ class RecentReportsView(APIView):
         limit = int(request.query_params.get("limit", 20))
         reports = services.get_recent_reports(limit=limit)
         return Response({"reports": reports})
+
+
+class WindDataView(APIView):
+    """GET /api/wind/ — Current wind speed/direction for Delhi."""
+
+    def get(self, request):
+        return Response(services.get_wind_data())
+
+
+class ImpactMetricsView(APIView):
+    """GET /api/impact/ — Platform impact metrics."""
+
+    def get(self, request):
+        return Response(services.get_impact_metrics())
+
+
+class ReportMapView(APIView):
+    """GET /api/reports/map/ — Reports from last 24h with coordinates."""
+
+    def get(self, request):
+        reports = services.get_reports_for_map()
+        return Response({"reports": reports, "count": len(reports)})

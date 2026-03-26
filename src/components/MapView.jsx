@@ -1,8 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import WardLayer from './WardLayer';
 import SourceLayer from './SourceLayer';
+import WindOverlay from './WindOverlay';
+import ReportMarkers from './ReportMarkers';
 import AqiLegend from './AqiLegend';
 import MapModeToggle from './MapModeToggle';
 import { useAppState } from '../context/AppContext';
@@ -37,6 +39,8 @@ function MapController() {
 
 function MapView() {
   const { isLoading, geojson, mapMode } = useAppState();
+  const [showWind, setShowWind] = useState(false);
+  const [showReports, setShowReports] = useState(false);
 
   return (
     <div className="absolute inset-0 z-0">
@@ -68,10 +72,40 @@ function MapView() {
           </>
         )}
 
+        {/* Toggleable overlays */}
+        <WindOverlay visible={showWind} />
+        <ReportMarkers visible={showReports} />
+
         <MapController />
         <AqiLegend />
         <MapModeToggle />
       </MapContainer>
+
+      {/* Overlay Toggle Controls — bottom left above legend */}
+      <div className="absolute bottom-28 left-4 z-[1000] flex flex-col gap-2">
+        <button
+          onClick={() => setShowWind(!showWind)}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            showWind
+              ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 shadow-lg shadow-sky-500/10'
+              : 'bg-surface/80 text-gray-400 border border-white/[0.08] hover:bg-white/[0.06]'
+          }`}
+          style={{ backdropFilter: 'blur(12px)' }}
+        >
+          🌬️ Wind
+        </button>
+        <button
+          onClick={() => setShowReports(!showReports)}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all ${
+            showReports
+              ? 'bg-orange-500/20 text-orange-300 border border-orange-500/40 shadow-lg shadow-orange-500/10'
+              : 'bg-surface/80 text-gray-400 border border-white/[0.08] hover:bg-white/[0.06]'
+          }`}
+          style={{ backdropFilter: 'blur(12px)' }}
+        >
+          📍 Reports
+        </button>
+      </div>
 
       {isLoading && (
         <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-surface/90 backdrop-blur-md">

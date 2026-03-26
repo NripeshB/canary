@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import { useAppState, useAppDispatch } from './context/AppContext';
 import { fetchWards, fetchWardDetail, fetchHotspots, fetchCityTrend, fetchSourceMap } from './api/wardApi';
+import { getMe } from './api/authApi';
 import MapView from './components/MapView';
 import SearchBar from './components/SearchBar';
 import DetailPanel from './components/DetailPanel';
@@ -12,39 +13,61 @@ import Header from './components/Header';
 import HotspotCards from './components/HotspotCards';
 import CityTrendChart from './components/CityTrendChart';
 import AdminDashboard from './components/AdminDashboard';
+import LoginPage from './components/LoginPage';
 
 function App() {
-  const { isLoading, error, selectedWard, activeTab } = useAppState();
+  const { isLoading, error, selectedWard, activeTab, isAuthenticated } = useAppState();
   const dispatch = useAppDispatch();
 
-  // Load initial data from backend
-  useEffect(() => {
-    async function loadInitialData() {
-      try {
-        // Load GeoJSON from public folder (stays on frontend)
+  // Load data function (reusable for polling)
+  const loadData = useCallback(async (isInitial = false) => {
+    try {
+      const fetches = [
+        fetchWards(),
+        fetchHotspots(5),
+        fetchCityTrend(),
+        fetchSourceMap(),
+      ];
+
+      // Only load GeoJSON on first call
+      if (isInitial) {
         const geoRes = await fetch('/delhiWards.json');
         if (!geoRes.ok) throw new Error(`GeoJSON load failed: ${geoRes.status}`);
         const geojson = await geoRes.json();
-
-        // Load all API data in parallel
-        const [wardList, hotspots, cityTrend, sourceMapData] = await Promise.all([
-          fetchWards(),
-          fetchHotspots(5),
-          fetchCityTrend(),
-          fetchSourceMap(),
-        ]);
-
+        const [wardList, hotspots, cityTrend, sourceMapData] = await Promise.all(fetches);
         dispatch({
           type: 'SET_INITIAL_DATA',
           payload: { geojson, wardList, hotspots, cityTrend, sourceMapData },
         });
-      } catch (err) {
-        console.error('Initial data load failed:', err);
-        dispatch({ type: 'SET_ERROR', payload: err.message });
+      } else {
+        const [wardList, hotspots, cityTrend, sourceMapData] = await Promise.all(fetches);
+        dispatch({
+          type: 'SET_INITIAL_DATA',
+          payload: { geojson: null, wardList, hotspots, cityTrend, sourceMapData },
+        });
       }
+    } catch (err) {
+      console.error('Data load failed:', err);
+      if (isInitial) dispatch({ type: 'SET_ERROR', payload: err.message });
     }
-    loadInitialData();
   }, [dispatch]);
+
+  // Initial load + restore session
+  useEffect(() => {
+    loadData(true);
+    // Restore auth session
+    getMe().then((data) => {
+      if (data.authenticated) {
+        dispatch({ type: 'SET_USER', payload: data.user });
+      }
+    });
+  }, [dispatch, loadData]);
+
+  // Auto-refresh every 5 minutes
+  useEffect(() => {
+    const interval = setInterval(() => loadData(false), 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [loadData]);
 
   // Fetch ward detail when selection changes
   useEffect(() => {
@@ -87,8 +110,11 @@ function App() {
     );
   }
 
-  // Admin tab — separate layout
+  // Admin tab — login gate + dashboard
   if (activeTab === 'admin') {
+    if (!isAuthenticated) {
+      return <LoginPage />;
+    }
     return (
       <>
         <AdminDashboard />
