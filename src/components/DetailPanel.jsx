@@ -149,7 +149,7 @@ function DetailPanel() {
     // "google/gemma-3n-e2b-it:free";
     
 
-    const model = "";//"nvidia/nemotron-3-super-120b-a12b:free";//"nvidia/nemotron-3-nano-30b-a3b:free";'arcee-ai/trinity-large-preview:free';//"stepfun/step-3.5-flash:free"; 
+    const model = "nvidia/nemotron-3-super-120b-a12b:free";//"nvidia/nemotron-3-super-120b-a12b:free";//"nvidia/nemotron-3-nano-30b-a3b:free";'arcee-ai/trinity-large-preview:free';//"stepfun/step-3.5-flash:free"; 
 
     if (!apiKey) {
       return fallbackLocalReply(question);
